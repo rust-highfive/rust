@@ -3581,9 +3581,7 @@ pub fn expr_kind(tcx: &ctxt, expr: &ast::Expr) -> ExprKind {
                 // DefArg's, particularly those of immediate type, ought to
                 // considered rvalues.
                 def::DefStatic(..) |
-                def::DefBinding(..) |
                 def::DefUpvar(..) |
-                def::DefArg(..) |
                 def::DefLocal(..) => LvalueExpr,
 
                 def => {

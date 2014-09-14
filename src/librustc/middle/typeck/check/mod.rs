@@ -4799,8 +4799,7 @@ pub fn polytype_for_def(fcx: &FnCtxt,
                         defn: def::Def)
                         -> Polytype {
     match defn {
-      def::DefArg(nid, _) | def::DefLocal(nid, _) |
-      def::DefBinding(nid, _) => {
+      def::DefLocal(nid, _) => {
           let typ = fcx.local_ty(sp, nid);
           return no_params(typ);
       }
@@ -4953,10 +4952,8 @@ pub fn instantiate_path(fcx: &FnCtxt,
         // elsewhere. (I hope)
         def::DefMod(..) |
         def::DefForeignMod(..) |
-        def::DefArg(..) |
         def::DefLocal(..) |
         def::DefMethod(..) |
-        def::DefBinding(..) |
         def::DefUse(..) |
         def::DefRegion(..) |
         def::DefLabel(..) |

@@ -447,7 +447,6 @@ impl tr for def::Def {
           def::DefMod(did) => { def::DefMod(did.tr(dcx)) }
           def::DefForeignMod(did) => { def::DefForeignMod(did.tr(dcx)) }
           def::DefStatic(did, m) => { def::DefStatic(did.tr(dcx), m) }
-          def::DefArg(nid, b) => { def::DefArg(dcx.tr_id(nid), b) }
           def::DefLocal(nid, b) => { def::DefLocal(dcx.tr_id(nid), b) }
           def::DefVariant(e_did, v_did, is_s) => {
             def::DefVariant(e_did.tr(dcx), v_did.tr(dcx), is_s)
@@ -456,7 +455,6 @@ impl tr for def::Def {
           def::DefTy(did) => def::DefTy(did.tr(dcx)),
           def::DefPrimTy(p) => def::DefPrimTy(p),
           def::DefTyParam(s, did, v) => def::DefTyParam(s, did.tr(dcx), v),
-          def::DefBinding(nid, bm) => def::DefBinding(dcx.tr_id(nid), bm),
           def::DefUse(did) => def::DefUse(did.tr(dcx)),
           def::DefUpvar(nid1, def, nid2, nid3) => {
             def::DefUpvar(dcx.tr_id(nid1),

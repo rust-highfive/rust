@@ -119,7 +119,6 @@ and report an error, and it just seems like more mess in the end.)
 */
 
 use middle::def;
-use middle::def::{DefArg, DefBinding, DefLocal, DefUpvar};
 use middle::freevars;
 use middle::mem_categorization as mc;
 use middle::ty::{ReScope};
@@ -232,11 +231,10 @@ fn region_of_def(fcx: &FnCtxt, def: def::Def) -> ty::Region {
 
     let tcx = fcx.tcx();
     match def {
-        DefLocal(node_id, _) | DefArg(node_id, _) |
-        DefBinding(node_id, _) => {
+        def::DefLocal(node_id, _) => {
             tcx.region_maps.var_region(node_id)
         }
-        DefUpvar(_, subdef, closure_id, body_id) => {
+        def::DefUpvar(_, subdef, closure_id, body_id) => {
             match ty::ty_closure_store(fcx.node_ty(closure_id)) {
                 ty::RegionTraitStore(..) => region_of_def(fcx, *subdef),
                 ty::UniqTraitStore => ReScope(body_id)

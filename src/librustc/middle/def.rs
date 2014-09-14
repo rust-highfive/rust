@@ -22,14 +22,12 @@ pub enum Def {
     DefMod(ast::DefId),
     DefForeignMod(ast::DefId),
     DefStatic(ast::DefId, bool /* is_mutbl */),
-    DefArg(ast::NodeId, ast::BindingMode),
     DefLocal(ast::NodeId, ast::BindingMode),
     DefVariant(ast::DefId /* enum */, ast::DefId /* variant */, bool /* is_structure */),
     DefTy(ast::DefId),
     DefTrait(ast::DefId),
     DefPrimTy(ast::PrimTy),
     DefTyParam(ParamSpace, ast::DefId, uint),
-    DefBinding(ast::NodeId, ast::BindingMode),
     DefUse(ast::DefId),
     DefUpvar(ast::NodeId,  // id of closed over var
              Gc<Def>,     // closed over def
@@ -66,11 +64,9 @@ impl Def {
             DefUse(id) | DefStruct(id) | DefTrait(id) | DefMethod(id, _) => {
                 id
             }
-            DefArg(id, _) |
             DefLocal(id, _) |
             DefSelfTy(id) |
             DefUpvar(id, _, _, _) |
-            DefBinding(id, _) |
             DefRegion(id) |
             DefTyParamBinder(id) |
             DefLabel(id) => {
