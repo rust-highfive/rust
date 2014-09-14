@@ -313,24 +313,13 @@ impl MutabilityCategory {
         }
     }
 
-    fn from_def(def: &def::Def) -> MutabilityCategory {
-        match *def {
-            def::DefFn(..) | def::DefStaticMethod(..) | def::DefSelfTy(..) |
-            def::DefMod(..) | def::DefForeignMod(..) | def::DefVariant(..) |
-            def::DefTy(..) | def::DefTrait(..) | def::DefPrimTy(..) |
-            def::DefTyParam(..) | def::DefUse(..) | def::DefStruct(..) |
-            def::DefTyParamBinder(..) | def::DefRegion(..) | def::DefLabel(..) |
-            def::DefMethod(..) => fail!("no MutabilityCategory for def: {}", *def),
-
-            def::DefStatic(_, false) => McImmutable,
-            def::DefStatic(_, true) => McDeclared,
-
-            def::DefLocal(_, binding_mode)  => match binding_mode {
-                ast::BindByValue(ast::MutMutable) => McDeclared,
+    fn from_local(tcx: &ty::ctxt, id: ast::NodeId) -> MutabilityCategory {
+        match tcx.map.get(id) {
+            ast_map::NodeLocal(p) | ast_map::NodeArg(p) => match p.node {
+                ast::PatIdent(ast::BindByValue(ast::MutMutable), _, _) => McDeclared,
                 _ => McImmutable
             },
-
-            def::DefUpvar(_, def, _, _) => MutabilityCategory::from_def(&*def)
+            _ => McImmutable
         }
     }
 
@@ -542,12 +531,12 @@ impl<'t,'tcx,TYPER:Typer<'tcx>> MemCategorizationContext<'t,TYPER> {
               }))
           }
 
-          def::DefStatic(_, _) => {
+          def::DefStatic(_, mutbl) => {
               Ok(Rc::new(cmt_ {
                   id:id,
                   span:span,
                   cat:cat_static_item,
-                  mutbl: MutabilityCategory::from_def(&def),
+                  mutbl: if mutbl { McDeclared } else { McImmutable},
                   ty:expr_ty
               }))
           }
@@ -580,7 +569,7 @@ impl<'t,'tcx,TYPER:Typer<'tcx>> MemCategorizationContext<'t,TYPER> {
                                   onceness: closure_ty.onceness,
                                   capturing_proc: fn_node_id,
                               }),
-                              mutbl: MutabilityCategory::from_def(&def),
+                              mutbl: MutabilityCategory::from_local(self.tcx(), var_id),
                               ty:expr_ty
                           }))
                       }
@@ -603,7 +592,7 @@ impl<'t,'tcx,TYPER:Typer<'tcx>> MemCategorizationContext<'t,TYPER> {
                               onceness: onceness,
                               capturing_proc: fn_node_id,
                           }),
-                          mutbl: MutabilityCategory::from_def(&def),
+                          mutbl: MutabilityCategory::from_local(self.tcx(), var_id),
                           ty: expr_ty
                       }))
                   }
@@ -617,7 +606,7 @@ impl<'t,'tcx,TYPER:Typer<'tcx>> MemCategorizationContext<'t,TYPER> {
               }
           }
 
-          def::DefLocal(vid, _) => {
+          def::DefLocal(vid) => {
             let cat = match self.tcx().map.find(vid) {
                 Some(ast_map::NodeArg(_)) => {
                     // Idea: make this could be rewritten to model by-ref
@@ -631,7 +620,7 @@ impl<'t,'tcx,TYPER:Typer<'tcx>> MemCategorizationContext<'t,TYPER> {
                 id: id,
                 span: span,
                 cat: cat,
-                mutbl: MutabilityCategory::from_def(&def),
+                mutbl: MutabilityCategory::from_local(self.tcx(), vid),
                 ty: expr_ty
             }))
           }

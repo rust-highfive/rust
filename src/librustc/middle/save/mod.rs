@@ -229,7 +229,7 @@ impl <'l, 'tcx> DxrVisitor<'l, 'tcx> {
             def::DefTy(_) |
             def::DefTrait(_) => Some(recorder::TypeRef),
             def::DefStatic(_, _) |
-            def::DefLocal(_, _) |
+            def::DefLocal(_) |
             def::DefVariant(_, _, _) |
             def::DefUpvar(_, _, _, _) => Some(recorder::VarRef),
 
@@ -732,18 +732,14 @@ impl <'l, 'tcx> DxrVisitor<'l, 'tcx> {
         let def = def_map.get(&ex.id);
         let sub_span = self.span.span_for_last_ident(ex.span);
         match *def {
-            def::DefUpvar(id, _, _, _) |
-            def::DefLocal(id, _) => self.fmt.ref_str(recorder::VarRef,
-                                                     ex.span,
-                                                     sub_span,
-                                                     ast_util::local_def(id),
-                                                     self.cur_scope),
-            def::DefStatic(def_id,_) |
-            def::DefVariant(_, def_id, _) => self.fmt.ref_str(recorder::VarRef,
-                                                              ex.span,
-                                                              sub_span,
-                                                              def_id,
-                                                              self.cur_scope),
+            def::DefUpvar(..) |
+            def::DefLocal(..) |
+            def::DefStatic(..) |
+            def::DefVariant(..) => self.fmt.ref_str(recorder::VarRef,
+                                                    ex.span,
+                                                    sub_span,
+                                                    def.def_id(),
+                                                    self.cur_scope),
             def::DefStruct(def_id) => self.fmt.ref_str(recorder::StructRef,
                                                        ex.span,
                                                        sub_span,
@@ -814,7 +810,7 @@ impl <'l, 'tcx> DxrVisitor<'l, 'tcx> {
             def::DefStaticMethod(_, _, _) => {
                 self.write_sub_path_trait_truncated(path);
             },
-            def::DefLocal(_, _) |
+            def::DefLocal(_) |
             def::DefStatic(_,_) |
             def::DefStruct(_) |
             def::DefFn(_, _) => self.write_sub_paths_truncated(path),
@@ -1388,12 +1384,12 @@ impl<'l, 'tcx, 'v> Visitor<'v> for DxrVisitor<'l, 'tcx> {
             }
             let def = def_map.get(&id);
             match *def {
-                def::DefLocal(id, _)  => self.fmt.variable_str(p.span,
-                                                               sub_span,
-                                                               id,
-                                                               path_to_string(p).as_slice(),
-                                                               value.as_slice(),
-                                                               ""),
+                def::DefLocal(id)  => self.fmt.variable_str(p.span,
+                                                            sub_span,
+                                                            id,
+                                                            path_to_string(p).as_slice(),
+                                                            value.as_slice(),
+                                                            ""),
                 def::DefVariant(_,id,_) => self.fmt.ref_str(ref_kind,
                                                             p.span,
                                                             sub_span,
