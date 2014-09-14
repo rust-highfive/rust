@@ -8,8 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use middle::freevars::freevar_entry;
-use middle::freevars;
 use middle::subst;
 use middle::ty::ParameterEnvironment;
 use middle::ty;
@@ -281,8 +279,8 @@ fn check_local(cx: &mut Context, local: &Local) {
 // closure.
 fn with_appropriate_checker(cx: &Context,
                             id: NodeId,
-                            b: |checker: |&Context, &freevar_entry||) {
-    fn check_for_uniq(cx: &Context, fv: &freevar_entry, bounds: ty::BuiltinBounds) {
+                            b: |checker: |&Context, &ty::Freevar||) {
+    fn check_for_uniq(cx: &Context, fv: &ty::Freevar, bounds: ty::BuiltinBounds) {
         // all captured data must be owned, regardless of whether it is
         // moved in or copied in.
         let id = fv.def.def_id().node;
@@ -291,7 +289,7 @@ fn with_appropriate_checker(cx: &Context,
         check_freevar_bounds(cx, fv.span, var_t, bounds, None);
     }
 
-    fn check_for_block(cx: &Context, fv: &freevar_entry,
+    fn check_for_block(cx: &Context, fv: &ty::Freevar,
                        bounds: ty::BuiltinBounds, region: ty::Region) {
         let id = fv.def.def_id().node;
         let var_t = ty::node_id_to_type(cx.tcx, id);
@@ -302,7 +300,7 @@ fn with_appropriate_checker(cx: &Context,
                              bounds, Some(var_t));
     }
 
-    fn check_for_bare(cx: &Context, fv: &freevar_entry) {
+    fn check_for_bare(cx: &Context, fv: &ty::Freevar) {
         span_err!(cx.tcx.sess, fv.span, E0143,
                   "can't capture dynamic environment in a fn item; \
                    use the || {} closure form instead", "{ ... }");
@@ -348,7 +346,7 @@ fn check_fn(
 
     // Check kinds on free variables:
     with_appropriate_checker(cx, fn_id, |chk| {
-        freevars::with_freevars(cx.tcx, fn_id, |freevars| {
+        ty::with_freevars(cx.tcx, fn_id, |freevars| {
             for fv in freevars.iter() {
                 chk(cx, fv);
             }
