@@ -14,7 +14,6 @@ use back::link::mangle_internal_name_by_path_and_seq;
 use driver::config::FullDebugInfo;
 use llvm::ValueRef;
 use middle::def;
-use middle::freevars;
 use middle::lang_items::ClosureExchangeMallocFnLangItem;
 use middle::mem_categorization::Typer;
 use middle::trans::adt;

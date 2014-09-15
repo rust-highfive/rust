@@ -18,7 +18,7 @@ use lint;
 use llvm::{ContextRef, ModuleRef};
 use metadata::common::LinkMeta;
 use metadata::creader;
-use middle::{trans, freevars, stability, kind, ty, typeck, reachable};
+use middle::{trans, stability, kind, ty, typeck, reachable};
 use middle::dependency_format;
 use middle;
 use plugin::load::Plugins;
@@ -358,11 +358,13 @@ pub fn phase_3_run_analysis_passes<'tcx>(sess: Session,
                           middle::lang_items::collect_language_items(krate, &sess));
 
     let middle::resolve::CrateMap {
-        def_map: def_map,
-        exp_map2: exp_map2,
-        trait_map: trait_map,
-        external_exports: external_exports,
-        last_private_map: last_private_map
+        def_map,
+        freevars,
+        capture_mode_map,
+        exp_map2,
+        trait_map,
+        external_exports,
+        last_private_map
     } =
         time(time_passes, "resolution", (), |_|
              middle::resolve::resolve_crate(&sess, &lang_items, krate));
@@ -381,10 +383,6 @@ pub fn phase_3_run_analysis_passes<'tcx>(sess: Session,
             plugin::build::find_plugin_registrar(
                 sess.diagnostic(), krate)));
 
-    let (freevars, capture_modes) =
-        time(time_passes, "freevar finding", (), |_|
-             freevars::annotate_freevars(&def_map, krate));
-
     let region_map = time(time_passes, "region resolution", (), |_|
                           middle::region::resolve_crate(&sess, krate));
 
@@ -400,7 +398,7 @@ pub fn phase_3_run_analysis_passes<'tcx>(sess: Session,
                             named_region_map,
                             ast_map,
                             freevars,
-                            capture_modes,
+                            capture_mode_map,
                             region_map,
                             lang_items,
                             stability_index);
